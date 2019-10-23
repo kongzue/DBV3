@@ -104,7 +104,7 @@ public class DBHelper {
     
     public boolean addData(String tableName, DBData data, boolean allowDuplicate) {
         if (!allowDuplicate) {
-            if (DBHelper.getInstance().findDataCount(tableName, data) != 0) {
+            if (DBHelper.getInstance().findDataCount(tableName, data, null) != 0) {
                 error("重复数据：" + data);
                 return true;
             }
@@ -243,7 +243,7 @@ public class DBHelper {
         }
         sql.append(" ORDER BY _id ");
         sql.append(sort.name());
-        if (start != 0 && count != 0) {
+        if (start != -1 && count != 0) {
             sql.append(" limit ");
             sql.append(start);
             sql.append(",");
@@ -273,18 +273,26 @@ public class DBHelper {
     }
     
     //根据查询条件dbData获取一个表内的所有符合条件数据的数量
-    public long findDataCount(String tableName, DBData findData) {
+    public long findDataCount(String tableName, DBData findData, List<String> whereConditions) {
         if (dbVersion == 0) {
             error("数据库不存在，请先通过add()或createNewTable()来创建一个数据库");
             return 0;
         }
         StringBuffer sql = new StringBuffer("SELECT * FROM " + tableName);
-        if (findData != null) {
+        if (findData != null || whereConditions!=null) {
             sql.append(" where ");
-            Set<String> set = findData.keySet();
-            for (String key : set) {
-                String value = findData.get(key).toString();
-                sql.append(" " + key + " = \'" + value + "\' AND");
+            if (findData!=null){
+                Set<String> set = findData.keySet();
+                for (String key : set) {
+                    String value = findData.get(key).toString();
+                    sql.append(" " + key + " = \'" + value + "\' AND");
+                }
+            }
+            if (whereConditions != null) {
+                for (String condition : whereConditions) {
+                    condition = condition.trim();
+                    sql.append(" " + condition + " AND");
+                }
             }
             if (sql.toString().endsWith("AND")) {
                 sql = new StringBuffer(sql.substring(0, sql.length() - 3));

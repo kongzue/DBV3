@@ -1,6 +1,9 @@
 package com.kongzue.dbv3.data;
 
+import org.json.JSONObject;
+
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
@@ -16,8 +19,26 @@ import java.util.Set;
  */
 public class DBData extends LinkedHashMap<String, Serializable> {
     
+    public static final String LINE_SEPARATOR = System.getProperty("line.separator");
+    
     public DBData() {
     
+    }
+    
+    public DBData(String jsonStr) {
+        jsonStr = jsonStr.replace(LINE_SEPARATOR, "");
+        try {
+            if (jsonStr.startsWith("{")) {
+                JSONObject jsonObject = new JSONObject(jsonStr);
+                Iterator keys = jsonObject.keys();
+                while (keys.hasNext()) {
+                    String key = keys.next() + "";
+                    String value = jsonObject.optString(key);
+                    put(key, value);
+                }
+            }
+        } catch (Exception e) {
+        }
     }
     
     public String getString(String key) {

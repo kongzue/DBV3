@@ -27,11 +27,11 @@ public class DB {
         DESC        //倒序
     }
     
-    private String tableName;               //操作的表的名称
-    private List<String> whereConditions;   //自定义where条件队列
-    private SORT sort = SORT.ASC;           //排序方式
-    private boolean allowDuplicate;         //是否允许添加重复数据
-    private long limitCount, limitStart;    //分页条件
+    private String tableName;                   //操作的表的名称
+    private List<String> whereConditions;       //自定义where条件队列
+    private SORT sort = SORT.ASC;               //排序方式
+    private boolean allowDuplicate;             //是否允许添加重复数据
+    private long limitCount, limitStart = -1;   //分页条件
     
     private DB() {
     }
@@ -224,7 +224,7 @@ public class DB {
      * @return 数量
      */
     public long getCount() {
-        return DBHelper.getInstance().findDataCount(tableName, null);
+        return DBHelper.getInstance().findDataCount(tableName, null, whereConditions);
     }
     
     /**
@@ -243,7 +243,7 @@ public class DB {
      * @param dbData 要修改/创建的数据
      * @return 是否修改/创建成功
      */
-    public boolean updateReplace(DBData dbData) {
+    public boolean updateAdd(DBData dbData) {
         if (!DBHelper.getInstance().update(tableName, dbData)) {
             return add(dbData, false);
         }

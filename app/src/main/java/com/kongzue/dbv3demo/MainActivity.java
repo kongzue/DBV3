@@ -150,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
             
             }
         });
-        ;
         
         //初始化
         DB.init(this, "testDB", true);
