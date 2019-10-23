@@ -115,7 +115,7 @@ public class DBData extends LinkedHashMap<String, Serializable> {
     
     public String getPrintStr() {
         StringBuffer result = new StringBuffer();
-        result.append("{\n");
+        result.append("{");
         try {
             Set<String> keys = keySet();
             int i = 0;
@@ -123,13 +123,12 @@ public class DBData extends LinkedHashMap<String, Serializable> {
                 i++;
                 Object value = get(key);
                 if (value instanceof DBData) {
-                    result.append("\"" + key + "\":" + ((DBData) value).getPrintStr() + ",\n");
+                    result.append("\"" + key + "\":" + ((DBData) value).getPrintStr() + ", ");
                 } else {
-                    result.append("\"" + key + "\":\"" + value + "\"");
+                    result.append("\"" + key + "\":\"" + (value == null ? "" : value) + "\"");
                     if (i != keys.size()) {
-                        result.append(",");
+                        result.append(", ");
                     }
-                    result.append("\n");
                 }
             }
         } catch (Exception e) {

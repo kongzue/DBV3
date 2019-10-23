@@ -5,8 +5,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
 import com.kongzue.dbv3.DB;
 import com.kongzue.dbv3.data.DBData;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -76,8 +78,9 @@ public class DBHelper {
                 return false;
             }
             db.beginTransaction();
+            Cursor c = null;
             try {
-                Cursor c = db.rawQuery("select name from sqlite_master where type='table';", null);
+                c = db.rawQuery("select name from sqlite_master where type='table';", null);
                 while (c.moveToNext()) {
                     if (c.getString(0).equals(tableName)) {
                         c.close();
@@ -85,12 +88,14 @@ public class DBHelper {
                         return true;
                     }
                 }
-                c.close();
                 db.setTransactionSuccessful();  //设置事务成功完成
             } catch (Exception e) {
                 e.printStackTrace();
                 return false;
             } finally {
+                if (c != null) {
+                    c.close();
+                }
                 db.endTransaction();    //结束事务
             }
             return false;
@@ -191,20 +196,23 @@ public class DBHelper {
     //获取一个表内的所有字段名
     private List<String> getTableAllKeys(String tableName) {
         List<String> result = new ArrayList<>();
-        Cursor c = db.rawQuery("SELECT * FROM " + tableName + " WHERE 0", null);
+        Cursor c = null;
         try {
+            c = db.rawQuery("SELECT * FROM " + tableName + " WHERE 0", null);
             String[] columnNames = c.getColumnNames();
             for (String s : columnNames) {
                 result.add(s);
             }
         } finally {
-            c.close();
+            if (c != null) {
+                c.close();
+            }
         }
         return result;
     }
     
     //根据查询条件dbData获取一个表内的所有数据
-    public List<DBData> findData(String tableName, DBData findConditions, DB.SORT sort, List<String> whereConditions) {
+    public List<DBData> findData(String tableName, DBData findConditions, DB.SORT sort, List<String> whereConditions, long start, long count) {
         List<DBData> result = new ArrayList<>();
         if (dbVersion == 0) {
             error("数据库不存在，请先通过add()或createNewTable()来创建一个数据库");
@@ -233,10 +241,18 @@ public class DBHelper {
         if (sql.toString().endsWith("AND")) {
             sql = new StringBuffer(sql.substring(0, sql.length() - 3));
         }
-        sql.append(" ORDER BY _id " + sort.name());
+        sql.append(" ORDER BY _id ");
+        sql.append(sort.name());
+        if (start != 0 && count != 0) {
+            sql.append(" limit ");
+            sql.append(start);
+            sql.append(",");
+            sql.append(count);
+        }
         log("SQL.exec: " + sql.toString());
+        Cursor c = null;
         try {
-            Cursor c = db.rawQuery(sql.toString(), null);
+            c = db.rawQuery(sql.toString(), null);
             while (c.moveToNext()) {
                 DBData data = new DBData();
                 for (int i = 0; i < c.getColumnCount(); i++) {
@@ -248,6 +264,10 @@ public class DBHelper {
             c.close();
         } catch (Exception e) {
             error("查询错误：" + sql.toString());
+        } finally {
+            if (c != null) {
+                c.close();
+            }
         }
         return result;
     }
@@ -271,52 +291,59 @@ public class DBHelper {
             }
         }
         log("SQL.exec: " + sql.toString());
-        Cursor c = db.rawQuery(sql.toString(), null);
-        c.moveToFirst();
         long count = 0;
+        Cursor c = null;
         try {
-            count = c.getLong(0);
+            c = db.rawQuery(sql.toString(), null);
+            c.moveToFirst();
+            try {
+                count = c.getLong(0);
+            } catch (Exception e) {
+            }
+            c.close();
         } catch (Exception e) {
+        } finally {
+            if (c != null) {
+                c.close();
+            }
         }
-        c.close();
         return count;
     }
     
-    public boolean delete(String tableName,DBData dbData) {
-        if (dbData.getInt("_id") == 0) {
-            error("只能对已存在的数据（使用find查询出来的数据）进行删除");
-            return false;
-        }
+    public boolean delete(String tableName, DBData dbData, List<String> whereConditions) {
         if (dbVersion == 0) {
             error("数据库不存在，请先通过add()或createNewTable()来创建一个数据库");
             return false;
         }
-        db.beginTransaction();
-        try {
-            String sql = "delete from " + tableName + " where _id=\'" + dbData.getInt("_id") + "\'";
-            log("SQL.exec: " + sql);
-            db.execSQL(sql);
-            db.setTransactionSuccessful();  //设置事务成功完成
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        } finally {
-            db.endTransaction();    //结束事务
-        }
-        return true;
-    }
-    
-    public boolean delete(String tableName) {
-        if (dbVersion == 0) {
-            error("数据库不存在，请先通过add()或createNewTable()来创建一个数据库");
-            return false;
+        if (dbData != null) {
+            if (dbData.getInt("_id") == 0) {
+                error("只能对已存在的数据（使用find查询出来的数据）进行删除");
+                return false;
+            }
         }
         db.beginTransaction();
         try {
-            String sql = "delete from " + tableName;
-            log("SQL.exec: " + sql);
-            db.execSQL(sql);
-            db.execSQL("update sqlite_sequence set seq=0 where name='" + tableName + "';");          //将自增键初始化为0
+            StringBuffer sql = new StringBuffer("delete from ");
+            sql.append(tableName);
+            if (dbData != null || whereConditions != null) {
+                sql.append(" where ");
+                if (dbData != null) {
+                    sql.append("_id=\'" + dbData.getInt("_id") + "\' AND");
+                }
+                if (whereConditions != null) {
+                    for (String condition : whereConditions) {
+                        condition = condition.trim();
+                        sql.append(" " + condition + " AND");
+                    }
+                }
+                if (sql.toString().endsWith("AND")) {
+                    sql = new StringBuffer(sql.substring(0, sql.length() - 3));
+                }
+            } else {
+                db.execSQL("update sqlite_sequence set seq=0 where name='" + tableName + "';");          //将自增键初始化为0
+            }
+            log("SQL.exec: " + sql.toString());
+            db.execSQL(sql.toString());
             db.setTransactionSuccessful();  //设置事务成功完成
         } catch (Exception e) {
             e.printStackTrace();
@@ -342,7 +369,7 @@ public class DBHelper {
             Set<String> set = dbData.keySet();
             for (String key : set) {
                 if (!"_id".equals(key)) {
-                    String value =dbData.getString(key);
+                    String value = dbData.getString(key);
                     sql = sql + " " + key + " = \'" + value + "\' ,";
                 }
             }

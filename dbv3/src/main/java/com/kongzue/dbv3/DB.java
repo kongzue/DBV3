@@ -2,8 +2,10 @@ package com.kongzue.dbv3;
 
 import android.content.Context;
 import android.util.Log;
+
 import com.kongzue.dbv3.data.DBData;
 import com.kongzue.dbv3.util.DBHelper;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,7 @@ public class DB {
     private List<String> whereConditions;   //自定义where条件队列
     private SORT sort = SORT.ASC;           //排序方式
     private boolean allowDuplicate;         //是否允许添加重复数据
+    private long limitCount, limitStart;    //分页条件
     
     private DB() {
     }
@@ -46,7 +49,7 @@ public class DB {
     /**
      * 初始化方法
      * <p>
-     * 日志打印可通过 DBHelper.DEBUGMODE = (boolean) 设置是否开启
+     * 日志打印可通过 {@link #setDEBUGMODE(boolean)} 设置是否开启
      *
      * @param context 上下文索引，建议使用您的 Application
      * @param DBName  表名
@@ -128,7 +131,7 @@ public class DB {
             }
         } else {
             //直接删除
-            return DBHelper.getInstance().delete(tableName, dbData);
+            return DBHelper.getInstance().delete(tableName, dbData, whereConditions);
         }
         return true;
     }
@@ -150,12 +153,15 @@ public class DB {
     }
     
     /**
-     * 删除表内所有数据
+     * 删除表内所有符合条件的数据
+     * <p>
+     * 条件：符合 where(...) 方法添加的条件
+     * 如果未设置任何条件，则清空整个表
      *
      * @return 是否删除成功
      */
-    public boolean deleteAll() {
-        return DBHelper.getInstance().delete(tableName);
+    public boolean delete() {
+        return DBHelper.getInstance().delete(tableName, null, whereConditions);
     }
     
     /**
@@ -165,7 +171,7 @@ public class DB {
      * @return 查询结果
      */
     public List<DBData> find(DBData findConditions) {
-        return DBHelper.getInstance().findData(tableName, findConditions, sort, whereConditions);
+        return DBHelper.getInstance().findData(tableName, findConditions, sort, whereConditions, limitStart, limitCount);
     }
     
     /**
@@ -174,7 +180,42 @@ public class DB {
      * @return 查询结果
      */
     public List<DBData> find() {
-        return DBHelper.getInstance().findData(tableName, null, sort, whereConditions);
+        return DBHelper.getInstance().findData(tableName, null, sort, whereConditions, limitStart, limitCount);
+    }
+    
+    /**
+     * 设置分页查询条件
+     *
+     * @param start 开始位置
+     * @param count 数量
+     * @return 继续条件
+     */
+    public DB limit(long start, long count) {
+        limitStart = start;
+        limitCount = count;
+        return this;
+    }
+    
+    /**
+     * 设置分页查询条件(强迫症的另一种分页写法)
+     *
+     * @param start 开始位置
+     * @param count 数量
+     * @return 继续条件
+     */
+    public DB subData(long start, long count) {
+        return limit(start, count);
+    }
+    
+    /**
+     * 清除分页条件
+     *
+     * @return 继续条件
+     */
+    public DB cleanLimit() {
+        limitStart = 0;
+        limitCount = 0;
+        return this;
     }
     
     /**
@@ -382,6 +423,26 @@ public class DB {
      */
     public void closeDB() {
         DBHelper.getInstance().closeDB();
+    }
+    
+    /**
+     * 设置是否开启日志
+     *
+     * @param showLogs 是否打印日志
+     * @return 继续条件
+     */
+    public DB setDEBUGMODE(boolean showLogs) {
+        DBHelper.DEBUGMODE = showLogs;
+        return this;
+    }
+    
+    /**
+     * 是否已开启日志
+     *
+     * @return 日志模式状态
+     */
+    public boolean isDEBUGMODE() {
+        return DBHelper.DEBUGMODE;
     }
     
     private void log(Object o) {
