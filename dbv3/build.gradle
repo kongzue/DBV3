@@ -2,11 +2,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
-def siteUrl = 'https://github.com/kongzue/DB' //项目在github主页地址
-def gitUrl = 'https://github.com/kongzue/DB.git'   //Git仓库的地址
+def siteUrl = 'https://github.com/kongzue/DBV3' //项目在github主页地址
+def gitUrl = 'https://github.com/kongzue/DBV3.git'   //Git仓库的地址
 
 group = "com.kongzue.db"//发布aar前缀根节点
-version = "2.9.9"//发布aar的库版本
+version = "2.9.8"//发布aar的库版本
 
 android {
     compileSdkVersion 29
@@ -15,7 +15,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 29
         versionCode 10
-        versionName "2.9.9"
+        versionName "2.9.8"
     }
 
     buildTypes {
