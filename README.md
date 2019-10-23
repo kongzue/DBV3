@@ -15,4 +15,5 @@ SQLite的封装，适合轻量使用数据库的场景，半自动化快速创�
 </a>
 
 Demo预览图如下：
-![KongzueDB](https://github.com/kongzue/Res/raw/master/app/src/main/res/mipmap-xxxhdpi/db.jpg)
+![KongzueDBV3](https://github.com/kongzue/DBV3/raw/master/.github/dbv3demo.png)
+
