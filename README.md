@@ -117,11 +117,11 @@ List<DBData> result = DB.getTable("user").find();
 ```
 List<DBData> result = DB.getTable("user")
         .whereEqual("name", "张三")               //添加查询条件，查询 name=张三 的结果
-        .whereGreater("age", 10)                 //添加查询条件，查询 age>10 的结果
-        .whereLess("grade", 100)                 //添加查询条件，查询 grade<100 的结果
+        .whereGreater("age", 10)                  //添加查询条件，查询 age>10 的结果
+        .whereLess("grade", 100)                  //添加查询条件，查询 grade<100 的结果
         .whereLike("introduction","%做事认真%")    //添加查询条件，查询 introduction含有“做事认真” 的结果
-        .whereNot("gender",1)                    //添加查询条件，查询 gender不为1 的结果
-        .find();                                 //此时查询结果为上述条件全都符合的结果
+        .whereNot("gender",1)                     //添加查询条件，查询 gender不为1 的结果
+        .find();                                  //此时查询结果为上述条件全都符合的结果
 ```
 
 除此之外，也可以自行编写查询条件：
