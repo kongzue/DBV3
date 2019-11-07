@@ -198,7 +198,7 @@ for (DBData dbData : result) {                   //对于已存在的数据
 
 关闭数据库
 ```
-.closeDB();
+DB.closeDB();
 ```
 
 ## 开源协议

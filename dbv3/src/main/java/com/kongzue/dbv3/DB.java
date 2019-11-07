@@ -421,7 +421,7 @@ public class DB {
     /**
      * 关闭数据库
      */
-    public void closeDB() {
+    public static void closeDB() {
         DBHelper.getInstance().closeDB();
     }
     
