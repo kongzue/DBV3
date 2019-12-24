@@ -6,8 +6,8 @@ android {
         applicationId "com.kongzue.dbv3demo"
         minSdkVersion 19
         targetSdkVersion 29
-        versionCode 12
-        versionName "3.0.1"
+        versionCode 13
+        versionName "3.0.2"
     }
     buildTypes {
         release {

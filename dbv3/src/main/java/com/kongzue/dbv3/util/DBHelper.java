@@ -399,6 +399,27 @@ public class DBHelper {
         return true;
     }
     
+    public boolean deleteTable(String tableName) {
+        if (!isHaveTable(tableName)){
+            log("不存在要删除的表：" + tableName );
+            return true;
+        }
+        db.beginTransaction();
+        try {
+            String sql = "drop table " + tableName;
+            log("SQL.exec: " + sql);
+            db.execSQL(sql);
+            db.execSQL("update sqlite_sequence set seq=0 where name='" + tableName + "';");          //将自增键初始化为0
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            db.endTransaction();
+        }
+        return true;
+    }
+    
     private class SQLiteHelperImpl extends SQLiteOpenHelper {
         
         public SQLiteHelperImpl(Context context, String dbName, int dbVersion) {

@@ -27,11 +27,9 @@ public class DBData extends LinkedHashMap<String, Serializable> {
     }
     
     public DBData(Map anyMap) {
-        Set<String> keys = keySet();
-        int i = 0;
+        Set<String> keys = anyMap.keySet();
         for (String key : keys) {
-            i++;
-            Serializable value = get(key) + "";
+            Serializable value = anyMap.get(key) + "";
             put(key, value);
         }
     }

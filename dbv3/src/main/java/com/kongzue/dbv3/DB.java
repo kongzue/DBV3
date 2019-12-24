@@ -205,6 +205,24 @@ public class DB {
     }
     
     /**
+     * 清空全表
+     *
+     * @return 是否删除成功
+     */
+    public boolean cleanAll(){
+        return DBHelper.getInstance().delete(tableName, null, null);
+    }
+    
+    /**
+     * 删除表
+     *
+     * @return 是否删除成功
+     */
+    public boolean deleteTable(){
+        return DBHelper.getInstance().deleteTable(tableName);
+    }
+    
+    /**
      * 查询该表内符合条件的数据
      *
      * @param findConditions 条件

@@ -21,13 +21,17 @@ import com.kongzue.dbv3.DB;
 import com.kongzue.dbv3.data.DBData;
 import com.kongzue.dbv3.util.DBHelper;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     
     private CheckBox chkAllowDuplicate;
     private Button btnAddDemoData;
+    private Button btnAddJsonData;
+    private Button btnAddMapData;
     private EditText editName;
     private EditText editAge;
     private RadioGroup rgpGender;
@@ -47,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
     private Button btnDeleteData;
     private Button btnAddDataSpecial;
     private Button btnUpdate;
+    private Button btnDeleteAll;
+    private Button btnDeleteTable;
     private TextView logs;
     
     private int selectWhereKey;
@@ -59,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
         
         chkAllowDuplicate = findViewById(R.id.chk_allowDuplicate);
         btnAddDemoData = findViewById(R.id.btn_add_demo_data);
+        btnAddJsonData = findViewById(R.id.btn_add_json_data);
+        btnAddMapData = findViewById(R.id.btn_add_map_data);
         editName = findViewById(R.id.edit_name);
         editAge = findViewById(R.id.edit_age);
         rgpGender = findViewById(R.id.rgp_gender);
@@ -78,6 +86,8 @@ public class MainActivity extends AppCompatActivity {
         btnDeleteData = findViewById(R.id.btn_delete_data);
         btnAddDataSpecial = findViewById(R.id.btn_add_data_special);
         btnUpdate = findViewById(R.id.btn_update);
+        btnDeleteAll = findViewById(R.id.btn_delete_all);
+        btnDeleteTable = findViewById(R.id.btn_delete_table);
         logs = findViewById(R.id.logs);
         
         String[] arr = {"姓名", "年龄", "性别", "VIP"};
@@ -165,6 +175,34 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         
+        //添加Json数据
+        btnAddJsonData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DB.getTable("user")
+                        .setAllowDuplicate(chkAllowDuplicate.isChecked())
+                        .add(new DBData("{\"username\":\"Json\",\"age\":\"2001\",\"gender\":\"-1\",\"isVIP\":\"false\"}"));
+                logAllData();
+            }
+        });
+        
+        //添加Map数据
+        btnAddMapData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Map map = new HashMap<>();
+                map.put("username", "MAP");
+                map.put("age", 1);
+                map.put("gender", -1);
+                map.put("isVIP", false);
+                
+                DB.getTable("user")
+                        .setAllowDuplicate(chkAllowDuplicate.isChecked())
+                        .add(new DBData(map));
+                logAllData();
+            }
+        });
+        
         //添加自定义数据
         btnAddCustomData.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -242,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 DB.getTable("user")
                         .setAllowDuplicate(false)
-                        .add(new DBData().set("username", "我多了一列").set("age", 27).set("gender", 0).set("isVIP", true).set("special","Surprise!"));
+                        .add(new DBData().set("username", "我多了一列").set("age", 27).set("gender", 0).set("isVIP", true).set("special", "Surprise!"));
                 logAllData();
             }
         });
@@ -253,11 +291,31 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 List<DBData> result = DB.getTable("user")
                         .find();
-    
+                
                 for (DBData dbData : result) {
                     DB.getTable("user").update(dbData.set("isVIP", true));
                 }
                 
+                logAllData();
+            }
+        });
+        
+        //清空表
+        btnDeleteAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean flag = DB.getTable("user").cleanAll();
+                toast("清空表" + (flag ? "成功" : "失败"));
+                logAllData();
+            }
+        });
+        
+        //删除表
+        btnDeleteTable.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean flag = DB.getTable("user").deleteTable();
+                toast("删除表" + (flag ? "成功" : "失败"));
                 logAllData();
             }
         });

@@ -25,11 +25,36 @@
             android:layout_height="match_parent"
             android:text="允许添加重复数据" />
 
-        <Button
-            android:id="@+id/btn_add_demo_data"
-            android:layout_width="wrap_content"
+        <HorizontalScrollView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="添加固定测试数据" />
+            android:scrollbars="none">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_add_demo_data"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="添加固定测试数据" />
+
+                <Button
+                    android:id="@+id/btn_add_json_data"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="通过Json添加数据" />
+
+                <Button
+                    android:id="@+id/btn_add_map_data"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="通过Map添加数据" />
+
+            </LinearLayout>
+
+        </HorizontalScrollView>
 
         <TextView
             android:layout_width="wrap_content"
@@ -207,6 +232,25 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="修改所有人都是VIP" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_delete_all"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="清空表" />
+
+            <Button
+                android:id="@+id/btn_delete_table"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="删除表" />
 
         </LinearLayout>
 
