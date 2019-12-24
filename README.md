@@ -2,10 +2,10 @@
 SQLite的封装，适合轻量使用数据库的场景，半自动化快速创建表结构
 
 <a href="https://github.com/kongzue/DBV3/">
-<img src="https://img.shields.io/badge/Kongzue%20DBV3-3.0.0-green.svg" alt="Kongzue DB">
+<img src="https://img.shields.io/badge/Kongzue%20DBV3-3.0.1-green.svg" alt="Kongzue DB">
 </a>
-<a href="https://bintray.com/myzchh/maven/DBV3/3.0.0/link">
-<img src="https://img.shields.io/badge/Maven-3.0.0-blue.svg" alt="Maven">
+<a href="https://bintray.com/myzchh/maven/DBV3/3.0.1/link">
+<img src="https://img.shields.io/badge/Maven-3.0.1-blue.svg" alt="Maven">
 </a>
 <a href="http://www.apache.org/licenses/LICENSE-2.0">
 <img src="https://img.shields.io/badge/License-Apache%202.0-red.svg" alt="License">
@@ -23,7 +23,9 @@ Demo预览图如下：
 ## 使用前的约定与须知
 - KongzueDB 是对 Android 中 SQLite 的封装，因简化存储方式以及采用自生成 SQL 语句的方式，仅可用于轻量需求的场景，如果需要多表联合查询等重度场景，以及对数据库中存储的数据类型有严格限定要求的项目，请勿使用本框架；
 
-- KongzueDB 框架使用 DBData 对象进行数据库数据操作，其结构和使用方式与 Map 一致，且 toString() 输出为 json 格式文本。
+- KongzueDB 框架使用 DBData 对象进行数据库数据操作，其结构和使用方式与 Map 一致，可将查询的数据直接与 Adapter 做对接。
+
+- KongzueDB 提供与 json 数据的完美对接，可输出为 json，亦可从 json 直接创建数据库数据。
 
 - 本框架目的是解决 SQLite 上手难度的问题，对其增删改查进行了进一步的封装，使其更好用更易用，流程更轻松，但本质上依然是在数据库中进行操作，请注意至少具备数据库、表、项，以及数据库的基本常识的情况下进行使用；
 
@@ -39,14 +41,14 @@ Maven仓库：
 <dependency>
   <groupId>com.kongzue.db</groupId>
   <artifactId>dbv3</artifactId>
-  <version>3.0.0</version>
+  <version>3.0.1</version>
   <type>pom</type>
 </dependency>
 ```
 Gradle：
 在dependencies{}中添加引用：
 ```
-implementation 'com.kongzue.db:dbv3:3.0.0'
+implementation 'com.kongzue.db:dbv3:3.0.1'
 ```
 
 ## 使用方法
@@ -201,6 +203,37 @@ for (DBData dbData : result) {                   //对于已存在的数据
 DB.closeDB();
 ```
 
+## Json 互转
+
+对于一个 JsonObject，例如：
+```
+{
+    "name":"张三",
+    "age":16,
+    "phone":18888888888
+}
+```
+要将它转换为 DBData 对象，请使用：
+```
+String json = "{\"name\":\"张三\",\"age\":16,\"phone\":18888888888}";
+DBData result = new DBData(json);
+```
+
+对于已查询出的对象，要将其转换为 json，使用 DBData 自带的  toString() 输出即可：
+```
+List<DBData> result = DB.getTable("user").find();
+for (DBData dbData : result) {
+    Log.i("json输出：", dbData.toString());
+}
+```
+
+## 由 Map 对象创建 DBData
+
+使用以下代码转换为 DBData：
+```
+DBData result = new DBData(map);
+```
+
 ## 开源协议
 ```
 Copyright KongzueDB V3
@@ -219,5 +252,10 @@ limitations under the License.
 ```
 
 ## 更新日志
+v3.0.1:
+- 新增使用 json 文本创建 DBData 方法；
+- 新增 Map 对象创建 DBData 方法；
+- bug修复。
+
 v3.0.0:
 - 全新版本更新。

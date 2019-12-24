@@ -29,7 +29,7 @@ public class DB {
     
     private String tableName;                   //操作的表的名称
     private List<String> whereConditions;       //自定义where条件队列
-    private SORT sort = SORT.ASC;               //排序方式
+    private SORT sort = null;               //排序方式
     private boolean allowDuplicate;             //是否允许添加重复数据
     private long limitCount, limitStart = -1;   //分页条件
     
@@ -100,19 +100,59 @@ public class DB {
         }
         boolean addFlag = DBHelper.getInstance().addData(tableName, dbData, allowDuplicate);
         if (!addFlag) {
-            boolean updateFlag = DBHelper.getInstance().updateTable(tableName, dbData);
-            if (!updateFlag) {
+            boolean updateTableFlag = DBHelper.getInstance().updateTable(tableName, dbData);
+            if (!updateTableFlag) {
                 error("严重错误：更新表失败，表模板" + dbData.getPrintTable());
                 return false;
             }
             if (DBHelper.getInstance().addData(tableName, dbData, allowDuplicate)) {
                 log("表 " + tableName + " 添加数据：" + dbData);
+                return true;
             } else {
                 error("严重错误：添加数据失败：" + dbData);
                 return false;
             }
         }
         log("表 " + tableName + " 添加数据：" + dbData);
+        return true;
+    }
+    
+    /**
+     * 修改一个已存在的数据
+     *
+     * @param dbData 要修改的数据
+     * @return 是否修改成功
+     */
+    public boolean update(DBData dbData) {
+        boolean updateFlag =  DBHelper.getInstance().update(tableName, dbData);
+        if (!updateFlag){
+            boolean updateTableFlag = DBHelper.getInstance().updateTable(tableName, dbData);
+            if (!updateTableFlag) {
+                error("严重错误：更新表失败，表模板" + dbData.getPrintTable());
+                return false;
+            }
+            if ( DBHelper.getInstance().update(tableName, dbData)){
+                log("表 " + tableName + " 更新数据：" + dbData);
+                return true;
+            }else{
+                error("严重错误：更新数据失败：" + dbData);
+                return false;
+            }
+        }
+        log("表 " + tableName + " 更新数据：" + dbData);
+        return true;
+    }
+    
+    /**
+     * 修改一个已存在的数据，如果不存在则创建它
+     *
+     * @param dbData 要修改/创建的数据
+     * @return 是否修改/创建成功
+     */
+    public boolean updateAdd(DBData dbData) {
+        if (!DBHelper.getInstance().update(tableName, dbData)) {
+            return add(dbData, false);
+        }
         return true;
     }
     
@@ -225,29 +265,6 @@ public class DB {
      */
     public long getCount() {
         return DBHelper.getInstance().findDataCount(tableName, null, whereConditions);
-    }
-    
-    /**
-     * 修改一个已存在的数据
-     *
-     * @param dbData 要修改的数据
-     * @return 是否修改成功
-     */
-    public boolean update(DBData dbData) {
-        return DBHelper.getInstance().update(tableName, dbData);
-    }
-    
-    /**
-     * 修改一个已存在的数据，如果不存在则创建它
-     *
-     * @param dbData 要修改/创建的数据
-     * @return 是否修改/创建成功
-     */
-    public boolean updateAdd(DBData dbData) {
-        if (!DBHelper.getInstance().update(tableName, dbData)) {
-            return add(dbData, false);
-        }
-        return true;
     }
     
     /**

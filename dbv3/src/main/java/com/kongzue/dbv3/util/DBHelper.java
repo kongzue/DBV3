@@ -241,8 +241,10 @@ public class DBHelper {
         if (sql.toString().endsWith("AND")) {
             sql = new StringBuffer(sql.substring(0, sql.length() - 3));
         }
-        sql.append(" ORDER BY _id ");
-        sql.append(sort.name());
+        if (sort != null) {
+            sql.append(" ORDER BY _id ");
+            sql.append(sort.name());
+        }
         if (start != -1 && count != 0) {
             sql.append(" limit ");
             sql.append(start);
@@ -279,9 +281,9 @@ public class DBHelper {
             return 0;
         }
         StringBuffer sql = new StringBuffer("SELECT * FROM " + tableName);
-        if (findData != null || whereConditions!=null) {
+        if (findData != null || whereConditions != null) {
             sql.append(" where ");
-            if (findData!=null){
+            if (findData != null) {
                 Set<String> set = findData.keySet();
                 for (String key : set) {
                     String value = findData.get(key).toString();

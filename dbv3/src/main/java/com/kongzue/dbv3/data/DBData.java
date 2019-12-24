@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -23,6 +24,16 @@ public class DBData extends LinkedHashMap<String, Serializable> {
     
     public DBData() {
     
+    }
+    
+    public DBData(Map anyMap) {
+        Set<String> keys = keySet();
+        int i = 0;
+        for (String key : keys) {
+            i++;
+            Serializable value = get(key) + "";
+            put(key, value);
+        }
     }
     
     public DBData(String jsonStr) {
