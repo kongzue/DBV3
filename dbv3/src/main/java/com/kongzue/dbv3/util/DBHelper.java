@@ -103,6 +103,9 @@ public class DBHelper {
     }
     
     public boolean addData(String tableName, DBData data, boolean allowDuplicate) {
+        if (DBHelper.getInstance().getDb() == null) {
+            return false;
+        }
         if (!allowDuplicate) {
             if (DBHelper.getInstance().findDataCount(tableName, data, null) != 0) {
                 error("重复数据：" + data);
@@ -145,6 +148,9 @@ public class DBHelper {
     
     //创建表
     public boolean createNewTable(String tableName, DBData dbData) {
+        if (DBHelper.getInstance().getDb() == null) {
+            return false;
+        }
         StringBuffer newTableSQLCommandBuffer = new StringBuffer("CREATE TABLE IF NOT EXISTS " + tableName + " (" + "_id INTEGER PRIMARY KEY AUTOINCREMENT, ");
         Set<String> set = dbData.keySet();
         for (String key : set) {
@@ -170,6 +176,9 @@ public class DBHelper {
     
     //更新表
     public boolean updateTable(String tableName, DBData dbData) {
+        if (DBHelper.getInstance().getDb() == null) {
+            return false;
+        }
         updateTableSQLCommand = "ALTER TABLE " + tableName + " ADD ";
         List<String> newKeys = new ArrayList<>();
         List<String> oldKeys = getTableAllKeys(tableName);
@@ -213,6 +222,9 @@ public class DBHelper {
     
     //根据查询条件dbData获取一个表内的所有数据
     public List<DBData> findData(String tableName, DBData findConditions, DB.SORT sort, List<String> whereConditions, long start, long count) {
+        if (DBHelper.getInstance().getDb() == null) {
+            return new ArrayList<>();
+        }
         List<DBData> result = new ArrayList<>();
         if (dbVersion == 0) {
             error("数据库不存在，请先通过add()或createNewTable()来创建一个数据库");
@@ -276,6 +288,9 @@ public class DBHelper {
     
     //根据查询条件dbData获取一个表内的所有符合条件数据的数量
     public long findDataCount(String tableName, DBData findData, List<String> whereConditions) {
+        if (DBHelper.getInstance().getDb() == null) {
+            return 0;
+        }
         if (dbVersion == 0) {
             error("数据库不存在，请先通过add()或createNewTable()来创建一个数据库");
             return 0;
@@ -321,6 +336,9 @@ public class DBHelper {
     }
     
     public boolean delete(String tableName, DBData dbData, List<String> whereConditions) {
+        if (DBHelper.getInstance().getDb() == null) {
+            return false;
+        }
         if (dbVersion == 0) {
             error("数据库不存在，请先通过add()或createNewTable()来创建一个数据库");
             return false;
@@ -365,6 +383,9 @@ public class DBHelper {
     }
     
     public boolean update(String tableName, DBData dbData) {
+        if (DBHelper.getInstance().getDb() == null) {
+            return false;
+        }
         if (dbData.getInt("_id") == 0) {
             error("只能对已存在的数据（使用find查询出来的数据）进行修改");
             return false;
@@ -400,6 +421,9 @@ public class DBHelper {
     }
     
     public boolean deleteTable(String tableName) {
+        if (DBHelper.getInstance().getDb() == null) {
+            return false;
+        }
         if (!isHaveTable(tableName)){
             log("不存在要删除的表：" + tableName );
             return true;
