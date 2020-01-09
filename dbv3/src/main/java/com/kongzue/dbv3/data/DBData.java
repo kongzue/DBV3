@@ -155,10 +155,16 @@ public class DBData extends LinkedHashMap<String, Serializable> {
                 if (value instanceof DBData) {
                     result.append("\"" + key + "\":" + ((DBData) value).getPrintStr() + ", ");
                 } else {
-                    result.append("\"" + key + "\":\"" + (value == null ? "" : value) + "\"");
+                    String valueStr = String.valueOf(value);
+                    if (valueStr.startsWith("[") || valueStr.startsWith("{")) {
+                        result.append("\"" + key + "\":" + (value == null ? "" : value));
+                    } else {
+                        result.append("\"" + key + "\":\"" + (value == null ? "" : value) + "\"");
+                    }
                     if (i != keys.size()) {
                         result.append(", ");
                     }
+                    
                 }
             }
         } catch (Exception e) {
