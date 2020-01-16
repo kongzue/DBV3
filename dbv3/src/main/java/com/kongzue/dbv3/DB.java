@@ -91,12 +91,10 @@ public class DB {
      * @return 是否添加成功
      */
     public boolean add(DBData dbData, boolean allowDuplicate) {
-        if (!DBHelper.getInstance().isHaveTable(tableName)) {
-            boolean createFlag = DBHelper.getInstance().createNewTable(tableName, dbData);
-            if (!createFlag) {
-                error("严重错误：创建表失败，表模板" + dbData.getPrintTable());
-                return false;
-            }
+        boolean createFlag = DBHelper.getInstance().createNewTable(tableName, dbData);
+        if (!createFlag) {
+            error("严重错误：创建表失败，表模板" + dbData.getPrintTable());
+            return false;
         }
         boolean addFlag = DBHelper.getInstance().addData(tableName, dbData, allowDuplicate);
         if (!addFlag) {

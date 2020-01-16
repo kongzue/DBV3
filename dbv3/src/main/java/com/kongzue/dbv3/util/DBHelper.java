@@ -36,14 +36,20 @@ public class DBHelper {
     private Context context;
     
     public void init(Context context, String dbName) {
-        this.context = context;
-        this.dbName = dbName;
-        dbVersion = Preferences.getInstance().getInt(context, "KongzueDB", dbName + ".version");
+        helper.context = context;
+        helper.dbName = dbName;
+        helper.dbVersion = Preferences.getInstance().getInt(context, "KongzueDB", dbName + ".version");
         
         try {
             SQLiteOpenHelper sqLiteOpenHelper = new SQLiteHelperImpl(context, dbName, dbVersion);
-            db = sqLiteOpenHelper.getWritableDatabase();
+            helper.db = sqLiteOpenHelper.getWritableDatabase();
+            if (db == null) {
+                error("初始化数据库失败");
+            }
         } catch (Exception e) {
+            if (DEBUGMODE) {
+                e.printStackTrace();
+            }
         }
     }
     
@@ -74,7 +80,8 @@ public class DBHelper {
             if (DBHelper.getInstance().getDbVersion() == 0) {
                 return false;
             }
-            if (DBHelper.getInstance().getDb() == null) {
+            if (db == null) {
+                error("警告：数据库未初始化");
                 return false;
             }
             db.beginTransaction();
@@ -103,7 +110,8 @@ public class DBHelper {
     }
     
     public boolean addData(String tableName, DBData data, boolean allowDuplicate) {
-        if (DBHelper.getInstance().getDb() == null) {
+        if (db == null) {
+            error("警告：数据库未初始化");
             return false;
         }
         if (!allowDuplicate) {
@@ -148,9 +156,6 @@ public class DBHelper {
     
     //创建表
     public boolean createNewTable(String tableName, DBData dbData) {
-        if (DBHelper.getInstance().getDb() == null) {
-            return false;
-        }
         StringBuffer newTableSQLCommandBuffer = new StringBuffer("CREATE TABLE IF NOT EXISTS " + tableName + " (" + "_id INTEGER PRIMARY KEY AUTOINCREMENT, ");
         Set<String> set = dbData.keySet();
         for (String key : set) {
@@ -164,9 +169,17 @@ public class DBHelper {
         }
         newTableSQLCommand = newTableSQLCommand + ")";
         log("SQL.exec: " + newTableSQLCommand);
-        if (dbVersion == 0) {
+        if (dbVersion == 0 || db == null) {
             createTableSQLCommand = newTableSQLCommand;
             newTableSQLCommand = null;
+        }
+        try {
+            if (db != null) {
+                db.execSQL(newTableSQLCommand);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
         dbVersion++;
         Preferences.getInstance().set(context, "KongzueDB", dbName + ".version", dbVersion);
@@ -176,9 +189,6 @@ public class DBHelper {
     
     //更新表
     public boolean updateTable(String tableName, DBData dbData) {
-        if (DBHelper.getInstance().getDb() == null) {
-            return false;
-        }
         updateTableSQLCommand = "ALTER TABLE " + tableName + " ADD ";
         List<String> newKeys = new ArrayList<>();
         List<String> oldKeys = getTableAllKeys(tableName);
@@ -196,6 +206,13 @@ public class DBHelper {
             updateTableSQLCommand = updateTableSQLCommand.substring(0, updateTableSQLCommand.length() - 1);
         }
         log("SQL.exec: " + updateTableSQLCommand);
+        try {
+            if (db != null) {
+                db.execSQL(updateTableSQLCommand);
+            }
+        } catch (Exception e) {
+            return false;
+        }
         dbVersion++;
         Preferences.getInstance().set(context, "KongzueDB", dbName + ".version", dbVersion);
         restartDB();
@@ -212,6 +229,8 @@ public class DBHelper {
             for (String s : columnNames) {
                 result.add(s);
             }
+        } catch (Exception e) {
+            return result;
         } finally {
             if (c != null) {
                 c.close();
@@ -222,7 +241,8 @@ public class DBHelper {
     
     //根据查询条件dbData获取一个表内的所有数据
     public List<DBData> findData(String tableName, DBData findConditions, DB.SORT sort, List<String> whereConditions, long start, long count) {
-        if (DBHelper.getInstance().getDb() == null) {
+        if (db == null) {
+            error("警告：数据库未初始化");
             return new ArrayList<>();
         }
         List<DBData> result = new ArrayList<>();
@@ -288,7 +308,8 @@ public class DBHelper {
     
     //根据查询条件dbData获取一个表内的所有符合条件数据的数量
     public long findDataCount(String tableName, DBData findData, List<String> whereConditions) {
-        if (DBHelper.getInstance().getDb() == null) {
+        if (db == null) {
+            error("警告：数据库未初始化");
             return 0;
         }
         if (dbVersion == 0) {
@@ -336,7 +357,8 @@ public class DBHelper {
     }
     
     public boolean delete(String tableName, DBData dbData, List<String> whereConditions) {
-        if (DBHelper.getInstance().getDb() == null) {
+        if (db == null) {
+            error("警告：数据库未初始化");
             return false;
         }
         if (dbVersion == 0) {
@@ -383,7 +405,8 @@ public class DBHelper {
     }
     
     public boolean update(String tableName, DBData dbData) {
-        if (DBHelper.getInstance().getDb() == null) {
+        if (db == null) {
+            error("警告：数据库未初始化");
             return false;
         }
         if (dbData.getInt("_id") == 0) {
@@ -421,11 +444,12 @@ public class DBHelper {
     }
     
     public boolean deleteTable(String tableName) {
-        if (DBHelper.getInstance().getDb() == null) {
+        if (db == null) {
+            error("警告：数据库未初始化");
             return false;
         }
-        if (!isHaveTable(tableName)){
-            log("不存在要删除的表：" + tableName );
+        if (!isHaveTable(tableName)) {
+            log("不存在要删除的表：" + tableName);
             return true;
         }
         db.beginTransaction();
@@ -448,27 +472,30 @@ public class DBHelper {
         
         public SQLiteHelperImpl(Context context, String dbName, int dbVersion) {
             //CursorFactory设置为null,使用默认值
-            super(context, dbName + ".db", null, dbVersion);
+            super(context, dbName + ".db", null, dbVersion + 1);
         }
         
         @Override
         public void onCreate(SQLiteDatabase sqLiteDatabase) {
-            sqLiteDatabase.execSQL(createTableSQLCommand);
+            //if (!isNull(createTableSQLCommand)) {
+            //    sqLiteDatabase.execSQL(createTableSQLCommand);
+            //    createTableSQLCommand = null;
+            //}
         }
         
         //数据库升级用
         @Override
         public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-            if (oldVersion != dbVersion) {
-                if (!isNull(updateTableSQLCommand)) {
-                    sqLiteDatabase.execSQL(updateTableSQLCommand);
-                    updateTableSQLCommand = null;
-                }
-                if (!isNull(newTableSQLCommand)) {
-                    sqLiteDatabase.execSQL(newTableSQLCommand);
-                    newTableSQLCommand = null;
-                }
-            }
+            //if (oldVersion != dbVersion) {
+            //    if (!isNull(updateTableSQLCommand)) {
+            //        sqLiteDatabase.execSQL(updateTableSQLCommand);
+            //        updateTableSQLCommand = null;
+            //    }
+            //    if (!isNull(newTableSQLCommand)) {
+            //        sqLiteDatabase.execSQL(newTableSQLCommand);
+            //        newTableSQLCommand = null;
+            //    }
+            //}
         }
     }
     
@@ -483,6 +510,7 @@ public class DBHelper {
     }
     
     public void restartDB() {
+        log("# restartDB");
         synchronized (DBHelper.class) {
             if (db != null) {
                 db.close();
