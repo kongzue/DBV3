@@ -67,9 +67,6 @@ public class DBHelper {
     }
     
     private int dbVersion = 0;
-    private String createTableSQLCommand;
-    private String updateTableSQLCommand;
-    private String newTableSQLCommand;
     
     public int getDbVersion() {
         return dbVersion;
@@ -163,16 +160,12 @@ public class DBHelper {
                 newTableSQLCommandBuffer.append(" " + key + " TEXT,");
             }
         }
-        newTableSQLCommand = newTableSQLCommandBuffer.toString();
+        String newTableSQLCommand = newTableSQLCommandBuffer.toString();
         if (newTableSQLCommand.endsWith(",")) {
             newTableSQLCommand = newTableSQLCommand.substring(0, newTableSQLCommand.length() - 1);
         }
         newTableSQLCommand = newTableSQLCommand + ")";
         log("SQL.exec: " + newTableSQLCommand);
-        if (dbVersion == 0 || db == null) {
-            createTableSQLCommand = newTableSQLCommand;
-            newTableSQLCommand = null;
-        }
         try {
             if (db != null) {
                 db.execSQL(newTableSQLCommand);
@@ -189,7 +182,7 @@ public class DBHelper {
     
     //更新表
     public boolean updateTable(String tableName, DBData dbData) {
-        updateTableSQLCommand = "ALTER TABLE " + tableName + " ADD ";
+        String updateTableSQLCommand = "ALTER TABLE " + tableName + " ADD ";
         List<String> newKeys = new ArrayList<>();
         List<String> oldKeys = getTableAllKeys(tableName);
         for (String key : dbData.keySet()) {
