@@ -15,7 +15,7 @@ SQLite的封装，适合轻量使用数据库的场景，半自动化快速创�
 </a>
 
 Demo下载地址：
-https://fir.im/DBV3
+http://beta.kongzue.com/DBV3
 
 Demo预览图如下：
 ![KongzueDBV3](https://github.com/kongzue/DBV3/raw/master/.github/dbv3demo.png)
