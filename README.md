@@ -2,10 +2,10 @@
 SQLite的封装，适合轻量使用数据库的场景，半自动化快速创建表结构
 
 <a href="https://github.com/kongzue/DBV3/">
-<img src="https://img.shields.io/badge/Kongzue%20DBV3-3.0.2-green.svg" alt="Kongzue DB">
+<img src="https://img.shields.io/badge/Kongzue%20DBV3-3.0.3-green.svg" alt="Kongzue DB">
 </a>
-<a href="https://bintray.com/myzchh/maven/DBV3/3.0.2/link">
-<img src="https://img.shields.io/badge/Maven-3.0.2-blue.svg" alt="Maven">
+<a href="https://bintray.com/myzchh/maven/DBV3/3.0.3/link">
+<img src="https://img.shields.io/badge/Maven-3.0.3-blue.svg" alt="Maven">
 </a>
 <a href="http://www.apache.org/licenses/LICENSE-2.0">
 <img src="https://img.shields.io/badge/License-Apache%202.0-red.svg" alt="License">
@@ -41,14 +41,14 @@ Maven仓库：
 <dependency>
   <groupId>com.kongzue.db</groupId>
   <artifactId>dbv3</artifactId>
-  <version>3.0.2</version>
+  <version>3.0.3</version>
   <type>pom</type>
 </dependency>
 ```
 Gradle：
 在dependencies{}中添加引用：
 ```
-implementation 'com.kongzue.db:dbv3:3.0.2'
+implementation 'com.kongzue.db:dbv3:3.0.3'
 ```
 
 ## 使用方法
@@ -262,6 +262,11 @@ limitations under the License.
 ```
 
 ## 更新日志
+v3.0.3:
+- 部分可忽略错误日志不再输出；
+- 更新表逻辑修改；
+- bug修复及细节改进；
+
 v3.0.2:
 - 新增删除全表操作 deleteTable();
 - 新增清空全表操作 cleanAll();

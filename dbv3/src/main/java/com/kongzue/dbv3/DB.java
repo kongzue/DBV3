@@ -6,6 +6,7 @@ import android.util.Log;
 import com.kongzue.dbv3.data.DBData;
 import com.kongzue.dbv3.util.DBHelper;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +57,10 @@ public class DB {
      */
     public static void init(Context context, String DBName) {
         DBHelper.getInstance().init(context, DBName);
+    }
+    
+    public static void init(Context context, File dbFile) {
+        DBHelper.getInstance().init(context, dbFile);
     }
     
     /**

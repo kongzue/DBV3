@@ -9,6 +9,7 @@ import android.util.Log;
 import com.kongzue.dbv3.DB;
 import com.kongzue.dbv3.data.DBData;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -38,11 +39,26 @@ public class DBHelper {
     public void init(Context context, String dbName) {
         helper.context = context;
         helper.dbName = dbName;
-        helper.dbVersion = Preferences.getInstance().getInt(context, "KongzueDB", dbName + ".version");
         
         try {
-            SQLiteOpenHelper sqLiteOpenHelper = new SQLiteHelperImpl(context, dbName, dbVersion);
+            SQLiteOpenHelper sqLiteOpenHelper = new SQLiteHelperImpl(context, dbName, 1);
             helper.db = sqLiteOpenHelper.getWritableDatabase();
+            if (db == null) {
+                error("初始化数据库失败");
+            }
+        } catch (Exception e) {
+            if (DEBUGMODE) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    public void init(Context context, File dbFile) {
+        helper.context = context;
+        helper.dbName = dbName;
+        
+        try {
+            helper.db = SQLiteDatabase.openOrCreateDatabase(dbFile, null);
             if (db == null) {
                 error("初始化数据库失败");
             }
@@ -66,17 +82,8 @@ public class DBHelper {
         return db;
     }
     
-    private int dbVersion = 0;
-    
-    public int getDbVersion() {
-        return dbVersion;
-    }
-    
     public boolean isHaveTable(String tableName) {
         synchronized (DBHelper.this) {
-            if (DBHelper.getInstance().getDbVersion() == 0) {
-                return false;
-            }
             if (db == null) {
                 error("警告：数据库未初始化");
                 return false;
@@ -94,7 +101,9 @@ public class DBHelper {
                 }
                 db.setTransactionSuccessful();  //设置事务成功完成
             } catch (Exception e) {
-                e.printStackTrace();
+                if (DEBUGMODE) {
+                    e.printStackTrace();
+                }
                 return false;
             } finally {
                 if (c != null) {
@@ -145,6 +154,9 @@ public class DBHelper {
             db.setTransactionSuccessful();  //设置事务成功完成
             return true;
         } catch (Exception e) {
+            if (DEBUGMODE) {
+                e.printStackTrace();
+            }
             return false;
         } finally {
             db.endTransaction();    //结束事务
@@ -171,11 +183,11 @@ public class DBHelper {
                 db.execSQL(newTableSQLCommand);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (DEBUGMODE) {
+                e.printStackTrace();
+            }
             return false;
         }
-        dbVersion++;
-        Preferences.getInstance().set(context, "KongzueDB", dbName + ".version", dbVersion);
         restartDB();
         return true;
     }
@@ -204,10 +216,11 @@ public class DBHelper {
                 db.execSQL(updateTableSQLCommand);
             }
         } catch (Exception e) {
+            if (DEBUGMODE) {
+                e.printStackTrace();
+            }
             return false;
         }
-        dbVersion++;
-        Preferences.getInstance().set(context, "KongzueDB", dbName + ".version", dbVersion);
         restartDB();
         return true;
     }
@@ -223,6 +236,9 @@ public class DBHelper {
                 result.add(s);
             }
         } catch (Exception e) {
+            if (DEBUGMODE) {
+                e.printStackTrace();
+            }
             return result;
         } finally {
             if (c != null) {
@@ -239,10 +255,6 @@ public class DBHelper {
             return new ArrayList<>();
         }
         List<DBData> result = new ArrayList<>();
-        if (dbVersion == 0) {
-            error("数据库不存在，请先通过add()或createNewTable()来创建一个数据库");
-            return result;
-        }
         StringBuffer sql = new StringBuffer("SELECT * FROM " + tableName);
         if (findConditions != null || whereConditions != null) {
             sql.append(" where ");
@@ -291,6 +303,9 @@ public class DBHelper {
             c.close();
         } catch (Exception e) {
             error("查询错误：" + sql.toString());
+            if (DEBUGMODE) {
+                e.printStackTrace();
+            }
         } finally {
             if (c != null) {
                 c.close();
@@ -303,10 +318,6 @@ public class DBHelper {
     public long findDataCount(String tableName, DBData findData, List<String> whereConditions) {
         if (db == null) {
             error("警告：数据库未初始化");
-            return 0;
-        }
-        if (dbVersion == 0) {
-            error("数据库不存在，请先通过add()或createNewTable()来创建一个数据库");
             return 0;
         }
         StringBuffer sql = new StringBuffer("SELECT * FROM " + tableName);
@@ -335,12 +346,12 @@ public class DBHelper {
         try {
             c = db.rawQuery(sql.toString(), null);
             c.moveToFirst();
-            try {
-                count = c.getLong(0);
-            } catch (Exception e) {
-            }
-            c.close();
+            count = c.getLong(0);
         } catch (Exception e) {
+            //此错误忽略不计的原因是为此方法多用于添加前校验是否存在，肯定不存在的情况下这里必然抛异常，此异常完全可以忽略
+//            if (DEBUGMODE) {
+//                e.printStackTrace();
+//            }
         } finally {
             if (c != null) {
                 c.close();
@@ -349,13 +360,29 @@ public class DBHelper {
         return count;
     }
     
+    public long rawCount(String sql) {
+        if (db == null) {
+            error("警告：数据库未初始化");
+            return 0;
+        }
+        long result = 0;
+        Cursor c = null;
+        try {
+            c = db.rawQuery(sql, null);
+            c.moveToFirst();
+            result = c.getLong(0);
+        } catch (Exception e) {
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
+        return result;
+    }
+    
     public boolean delete(String tableName, DBData dbData, List<String> whereConditions) {
         if (db == null) {
             error("警告：数据库未初始化");
-            return false;
-        }
-        if (dbVersion == 0) {
-            error("数据库不存在，请先通过add()或createNewTable()来创建一个数据库");
             return false;
         }
         if (dbData != null) {
@@ -389,7 +416,9 @@ public class DBHelper {
             db.execSQL(sql.toString());
             db.setTransactionSuccessful();  //设置事务成功完成
         } catch (Exception e) {
-            e.printStackTrace();
+            if (DEBUGMODE) {
+                e.printStackTrace();
+            }
             return false;
         } finally {
             db.endTransaction();    //结束事务
@@ -404,10 +433,6 @@ public class DBHelper {
         }
         if (dbData.getInt("_id") == 0) {
             error("只能对已存在的数据（使用find查询出来的数据）进行修改");
-            return false;
-        }
-        if (dbVersion == 0) {
-            error("数据库不存在，请先通过add()或createNewTable()来创建一个数据库");
             return false;
         }
         db.beginTransaction();
@@ -428,7 +453,9 @@ public class DBHelper {
             db.execSQL(sql);
             db.setTransactionSuccessful();
         } catch (Exception e) {
-            e.printStackTrace();
+            if (DEBUGMODE) {
+                e.printStackTrace();
+            }
             return false;
         } finally {
             db.endTransaction();
@@ -453,7 +480,9 @@ public class DBHelper {
             db.execSQL("update sqlite_sequence set seq=0 where name='" + tableName + "';");          //将自增键初始化为0
             db.setTransactionSuccessful();
         } catch (Exception e) {
-            e.printStackTrace();
+            if (DEBUGMODE) {
+                e.printStackTrace();
+            }
             return false;
         } finally {
             db.endTransaction();
@@ -509,7 +538,7 @@ public class DBHelper {
                 db.close();
             }
             db = null;
-            SQLiteOpenHelper sqLiteOpenHelper = new SQLiteHelperImpl(context, dbName, dbVersion);
+            SQLiteOpenHelper sqLiteOpenHelper = new SQLiteHelperImpl(context, dbName, 1);
             db = sqLiteOpenHelper.getWritableDatabase();
         }
     }
