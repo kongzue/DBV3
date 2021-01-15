@@ -63,6 +63,11 @@ public class DB {
         DBHelper.getInstance().init(context, dbFile);
     }
     
+    @Deprecated
+    public static void init(Context context, String DBName, int oldVer) {
+        DBHelper.getInstance().init(context, DBName, oldVer);
+    }
+    
     /**
      * 初始化方法
      *
@@ -121,23 +126,74 @@ public class DB {
     }
     
     /**
+     * 添加新的数据，若 唯一键 存在则更新已有数据
+     *
+     * @param onlyKey 唯一键
+     * @param dbData  要添加的数据
+     * @return 是否添加成功
+     */
+    public boolean addOrUpdate(String onlyKey, DBData dbData) {
+        boolean createFlag = DBHelper.getInstance().createNewTable(tableName, dbData);
+        if (!createFlag) {
+            error("严重错误：创建表失败，表模板" + dbData.getPrintTable());
+            return false;
+        }
+        List<DBData> findData = DBHelper.getInstance().findData(tableName, new DBData().set(onlyKey, dbData.getString(onlyKey)), SORT.ASC, null, -1, 0);
+        if (findData.isEmpty()) {
+            return add(dbData, false);
+        } else {
+            boolean flag = true;
+            dbData.remove("_id");
+            for (DBData data : findData) {
+                data.putAll(dbData);
+                if (!update(data)) {
+                    flag = false;
+                }
+            }
+            return flag;
+        }
+    }
+    
+    
+    /**
+     * 添加新的数据，若 唯一键 存在则不添加
+     *
+     * @param onlyKey 唯一键
+     * @param dbData  要添加的数据
+     * @return 是否添加成功
+     */
+    public boolean addWhenNon(String onlyKey, DBData dbData) {
+        boolean createFlag = DBHelper.getInstance().createNewTable(tableName, dbData);
+        if (!createFlag) {
+            error("严重错误：创建表失败，表模板" + dbData.getPrintTable());
+            return false;
+        }
+        List<DBData> findData = DBHelper.getInstance().findData(tableName, new DBData().set(onlyKey, dbData.getString(onlyKey)), SORT.ASC, null, -1, 0);
+        if (findData.isEmpty()) {
+            return add(dbData, false);
+        } else {
+            return false;
+        }
+    }
+    
+    /**
      * 修改一个已存在的数据
      *
      * @param dbData 要修改的数据
      * @return 是否修改成功
      */
     public boolean update(DBData dbData) {
-        boolean updateFlag =  DBHelper.getInstance().update(tableName, dbData);
-        if (!updateFlag){
+        boolean updateFlag = DBHelper.getInstance().update(tableName, dbData);
+        if (!updateFlag) {
             boolean updateTableFlag = DBHelper.getInstance().updateTable(tableName, dbData);
             if (!updateTableFlag) {
                 error("严重错误：更新表失败，表模板" + dbData.getPrintTable());
                 return false;
             }
-            if ( DBHelper.getInstance().update(tableName, dbData)){
+            if (DBHelper.getInstance().update(tableName, dbData)) {
                 log("表 " + tableName + " 更新数据：" + dbData);
                 return true;
-            }else{
+            } else {
                 error("严重错误：更新数据失败：" + dbData);
                 return false;
             }
@@ -212,7 +268,7 @@ public class DB {
      *
      * @return 是否删除成功
      */
-    public boolean cleanAll(){
+    public boolean cleanAll() {
         return DBHelper.getInstance().delete(tableName, null, null);
     }
     
@@ -221,7 +277,7 @@ public class DB {
      *
      * @return 是否删除成功
      */
-    public boolean deleteTable(){
+    public boolean deleteTable() {
         return DBHelper.getInstance().deleteTable(tableName);
     }
     
@@ -274,7 +330,7 @@ public class DB {
      * @return 继续条件
      */
     public DB cleanLimit() {
-        limitStart = 0;
+        limitStart = -1;
         limitCount = 0;
         return this;
     }

@@ -52,6 +52,12 @@
                     android:layout_height="wrap_content"
                     android:text="通过Map添加数据" />
 
+                <Button
+                    android:id="@+id/btn_add_or_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="添加关键key:name的重复数据，存在则更新" />
+
             </LinearLayout>
 
         </HorizontalScrollView>

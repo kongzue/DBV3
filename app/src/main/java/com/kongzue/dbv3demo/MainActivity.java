@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnAddDemoData;
     private Button btnAddJsonData;
     private Button btnAddMapData;
+    private Button btnAddOrUpdate;
     private EditText editName;
     private EditText editAge;
     private RadioGroup rgpGender;
@@ -67,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
         btnAddDemoData = findViewById(R.id.btn_add_demo_data);
         btnAddJsonData = findViewById(R.id.btn_add_json_data);
         btnAddMapData = findViewById(R.id.btn_add_map_data);
+        btnAddOrUpdate = findViewById(R.id.btn_add_or_update);
         editName = findViewById(R.id.edit_name);
         editAge = findViewById(R.id.edit_age);
         rgpGender = findViewById(R.id.rgp_gender);
@@ -316,6 +318,20 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 boolean flag = DB.getTable("user").deleteTable();
                 toast("删除表" + (flag ? "成功" : "失败"));
+                logAllData();
+            }
+        });
+    
+        btnAddOrUpdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Map map = new HashMap<>();
+                map.put("username", "张三");
+                map.put("age", 99);
+                map.put("gender", 1);
+                map.put("isVIP", false);
+    
+                DB.getTable("user").addOrUpdate("username",new DBData(map));
                 logAllData();
             }
         });
