@@ -301,6 +301,17 @@ public class DB {
     }
     
     /**
+     * 查询该表第一个符合条件的数据
+     *
+     * @return 查询结果
+     */
+    public DBData findSingle() {
+        List<DBData> dataList = DBHelper.getInstance().findData(tableName, null, sort, whereConditions, limitStart, limitCount);
+        if (dataList == null || dataList.isEmpty()) return null;
+        return dataList.get(0);
+    }
+    
+    /**
      * 设置分页查询条件
      *
      * @param start 开始位置
