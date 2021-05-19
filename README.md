@@ -36,15 +36,30 @@ Demo预览图如下：
 - 在本框架中，您只需要关注 DB 这一个类即可，对于 DBHelper，不建议直接操作其中的方法。
 
 ## Maven仓库或Gradle的引用方式
-Maven仓库：
+
+#### jitpack
+
+首先在项目根目录的 build.gradle(project) 添加:
 ```
-<dependency>
-  <groupId>com.kongzue.db</groupId>
-  <artifactId>dbv3</artifactId>
-  <version>3.0.3</version>
-  <type>pom</type>
-</dependency>
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
+}
 ```
+
+然后在 build.gradle(app) 中添加：
+```
+dependencies {
+    implementation 'com.github.kongzue:DBV3:3.0.3.6'
+}
+```
+
+最新版本：![](https://jitpack.io/v/kongzue/DBV3.svg)
+
+#### jCenter（已停止运营）
+
 Gradle：
 在dependencies{}中添加引用：
 ```
