@@ -37,7 +37,7 @@ Demo预览图如下：
 
 ## Maven仓库或Gradle的引用方式
 
-#### jitpack
+### jitpack
 
 首先在项目根目录的 build.gradle(project) 添加:
 ```
@@ -58,7 +58,7 @@ dependencies {
 
 最新版本：![](https://jitpack.io/v/kongzue/DBV3.svg)
 
-#### jCenter（已停止运营）
+### jCenter（已停止运营）
 
 Gradle：
 在dependencies{}中添加引用：
@@ -154,6 +154,11 @@ List<DBData> result = DB.getTable("user")
 long count = DB.getTable("user")
         .where("name='李四'")                     //条件可添加可不添加
         .getCount();
+```
+
+当只需要查找一个确定的 DBData 数据项时，可以使用：
+```
+DBData data = DB.getTable("user").where(...).findSingle();  //请注意结果可能为 null
 ```
 
 要清空已添加的查询条件，可使用如下方法：
