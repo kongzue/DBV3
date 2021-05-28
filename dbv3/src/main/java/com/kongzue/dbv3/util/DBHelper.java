@@ -354,7 +354,7 @@ public class DBHelper {
                 error("警告：数据库未初始化");
                 return 0;
             }
-            StringBuffer sql = new StringBuffer("SELECT * FROM " + tableName);
+            StringBuffer sql = new StringBuffer("SELECT count(*) FROM " + tableName);
             if (findData != null || whereConditions != null) {
                 sql.append(" where ");
                 if (findData != null) {
