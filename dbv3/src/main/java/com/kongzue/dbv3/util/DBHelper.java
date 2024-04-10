@@ -25,21 +25,21 @@ import java.util.Set;
  * @createTime: 2019/10/22 16:38
  */
 public class DBHelper {
-    
+
     public static boolean DEBUGMODE = false;
     private String dbName = "";
-    
+
     private DBHelper() {
     }
-    
+
     private static DBHelper helper;
     private SQLiteDatabase db;
     private Context context;
-    
+
     public void init(Context context, String dbName) {
         helper.context = context;
         helper.dbName = dbName;
-        
+
         try {
             SQLiteOpenHelper sqLiteOpenHelper = new SQLiteHelperImpl(context, dbName, oldVer);
             helper.db = sqLiteOpenHelper.getWritableDatabase();
@@ -50,16 +50,39 @@ public class DBHelper {
             if (DEBUGMODE) {
                 e.printStackTrace();
             }
+            retryOpenDb(context, dbName);
         }
     }
-    
+
+    private void retryOpenDb(Context context, String dbName) {
+        SQLiteDatabase db = null;
+        int version = 0;
+
+        try {
+            db = SQLiteDatabase.openDatabase(context.getDatabasePath(dbName + ".db").getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY);
+            version = db.getVersion();
+
+            oldVer = version;
+            init(context,dbName);
+        } catch (Exception e) {
+            // 处理打开数据库时的异常
+            if (DEBUGMODE) {
+                e.printStackTrace();
+            }
+        } finally {
+            if (db != null) {
+                db.close();
+            }
+        }
+    }
+
     private int oldVer = 1;
-    
+
     public void init(Context context, String dbName, int oldVer) {
         helper.context = context;
         helper.dbName = dbName;
-        helper.oldVer=oldVer;
-        
+        helper.oldVer = oldVer;
+
         try {
             SQLiteOpenHelper sqLiteOpenHelper = new SQLiteHelperImpl(context, dbName, oldVer);
             helper.db = sqLiteOpenHelper.getWritableDatabase();
@@ -72,11 +95,11 @@ public class DBHelper {
             }
         }
     }
-    
+
     public void init(Context context, File dbFile) {
         helper.context = context;
         helper.dbName = dbName;
-        
+
         try {
             helper.db = SQLiteDatabase.openOrCreateDatabase(dbFile, null);
             if (db == null) {
@@ -88,7 +111,7 @@ public class DBHelper {
             }
         }
     }
-    
+
     public static DBHelper getInstance() {
         synchronized (DBHelper.class) {
             if (helper == null) {
@@ -97,11 +120,11 @@ public class DBHelper {
             return helper;
         }
     }
-    
+
     public SQLiteDatabase getDb() {
         return db;
     }
-    
+
     public boolean isHaveTable(String tableName) {
         synchronized (DBHelper.class) {
             if (db == null) {
@@ -134,7 +157,7 @@ public class DBHelper {
             return false;
         }
     }
-    
+
     public boolean addData(String tableName, DBData data, boolean allowDuplicate) {
         synchronized (DBHelper.class) {
             if (db == null) {
@@ -184,7 +207,7 @@ public class DBHelper {
             }
         }
     }
-    
+
     //创建表
     public boolean createNewTable(String tableName, DBData dbData) {
         synchronized (DBHelper.class) {
@@ -218,7 +241,7 @@ public class DBHelper {
             return true;
         }
     }
-    
+
     //更新表
     public boolean updateTable(String tableName, DBData dbData) {
         synchronized (DBHelper.class) {
@@ -253,7 +276,7 @@ public class DBHelper {
             return true;
         }
     }
-    
+
     //获取一个表内的所有字段名
     private List<String> getTableAllKeys(String tableName) {
         synchronized (DBHelper.class) {
@@ -278,7 +301,7 @@ public class DBHelper {
             return result;
         }
     }
-    
+
     //根据查询条件dbData获取一个表内的所有数据
     public List<DBData> findData(String tableName, DBData findConditions, DB.SORT sort, List<String> whereConditions, long start, long count) {
         synchronized (DBHelper.class) {
@@ -346,7 +369,7 @@ public class DBHelper {
             return result;
         }
     }
-    
+
     //根据查询条件dbData获取一个表内的所有符合条件数据的数量
     public long findDataCount(String tableName, DBData findData, List<String> whereConditions) {
         synchronized (DBHelper.class) {
@@ -394,7 +417,7 @@ public class DBHelper {
             return count;
         }
     }
-    
+
     public long rawCount(String sql) {
         synchronized (DBHelper.class) {
             if (db == null) {
@@ -416,7 +439,7 @@ public class DBHelper {
             return result;
         }
     }
-    
+
     public boolean delete(String tableName, DBData dbData, List<String> whereConditions) {
         synchronized (DBHelper.class) {
             if (db == null) {
@@ -464,7 +487,7 @@ public class DBHelper {
             return true;
         }
     }
-    
+
     public boolean update(String tableName, DBData dbData) {
         synchronized (DBHelper.class) {
             if (db == null) {
@@ -503,7 +526,7 @@ public class DBHelper {
             return true;
         }
     }
-    
+
     public boolean deleteTable(String tableName) {
         synchronized (DBHelper.class) {
             if (db == null) {
@@ -532,14 +555,14 @@ public class DBHelper {
             return true;
         }
     }
-    
+
     private class SQLiteHelperImpl extends SQLiteOpenHelper {
-        
+
         public SQLiteHelperImpl(Context context, String dbName, int dbVersion) {
             //CursorFactory设置为null,使用默认值
             super(context, dbName + ".db", null, dbVersion == 0 ? dbVersion + 1 : dbVersion);
         }
-        
+
         @Override
         public void onCreate(SQLiteDatabase sqLiteDatabase) {
             //if (!isNull(createTableSQLCommand)) {
@@ -547,7 +570,7 @@ public class DBHelper {
             //    createTableSQLCommand = null;
             //}
         }
-        
+
         //数据库升级用
         @Override
         public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
@@ -563,7 +586,7 @@ public class DBHelper {
             //}
         }
     }
-    
+
     public void closeDB() {
         synchronized (DBHelper.class) {
             if (db != null) {
@@ -573,7 +596,7 @@ public class DBHelper {
             db = null;
         }
     }
-    
+
     public void restartDB() {
         log("# restartDB");
         synchronized (DBHelper.class) {
@@ -585,24 +608,24 @@ public class DBHelper {
             db = sqLiteOpenHelper.getWritableDatabase();
         }
     }
-    
+
     private boolean isNull(String s) {
         if (s == null || s.trim().isEmpty() || "null".equals(s)) {
             return true;
         }
         return false;
     }
-    
+
     private void log(Object o) {
         if (DEBUGMODE) {
             Log.i("DB>>>", o.toString());
         }
     }
-    
+
     private void error(Object o) {
         if (DEBUGMODE) {
             Log.e("DB>>>", o.toString());
         }
     }
-    
+
 }
